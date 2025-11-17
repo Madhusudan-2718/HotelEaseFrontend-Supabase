@@ -3,7 +3,8 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig({
-  base: "/",  // ✅ FIXED FOR VERCEL
+  // ✅ REQUIRED FOR VERCEL — ALWAYS SERVE FROM ROOT
+  base: "/",
 
   plugins: [react()],
 
@@ -48,6 +49,8 @@ export default defineConfig({
       "@radix-ui/react-aspect-ratio@1.1.2": "@radix-ui/react-aspect-ratio",
       "@radix-ui/react-alert-dialog@1.1.6": "@radix-ui/react-alert-dialog",
       "@radix-ui/react-accordion@1.2.3": "@radix-ui/react-accordion",
+
+      // Your root alias
       "@": path.resolve(__dirname, "./src"),
     },
   },
