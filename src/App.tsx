@@ -42,8 +42,12 @@ export default function App() {
   useEffect(() => {
     registerServiceWorker();
 
-    // 👇 Always open HOME on fresh load (Option 1)
-    navigateToPage("home");
+    // 🔥 FIX: Only set HOME when user is not logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigateToPage("home");
+      }
+    });
 
     const handleNavigate = (event: CustomEvent) => {
       navigateToPage(event.detail as Page);
@@ -51,7 +55,7 @@ export default function App() {
 
     window.addEventListener("navigate", handleNavigate as EventListener);
 
-    // 🔥 Supabase Auth Listener
+    // Supabase Auth Listener
     supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
         setIsAdminAuthenticated(true);
@@ -60,7 +64,7 @@ export default function App() {
 
       if (event === "SIGNED_OUT") {
         setIsAdminAuthenticated(false);
-        navigateToPage("admin-login");
+        navigateToPage("admin-login"); // Logout goes to admin login
       }
     });
 
