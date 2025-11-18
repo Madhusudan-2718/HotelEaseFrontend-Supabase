@@ -24,9 +24,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
 
       await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: {
-          redirectTo: window.location.origin,
-        },
+        options: { redirectTo: window.location.origin },
       });
 
     } catch (error: any) {
@@ -45,7 +43,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     });
 
     if (error) {
-      toast.error(error.message || "Invalid credentials.");
+      toast.error(error.message || "Invalid credentials");
       setIsLoading(false);
       return;
     }
@@ -72,12 +70,12 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
 
       {/* Login Card */}
       <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.35, ease: "easeInOut" }}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
         className="relative w-full max-w-sm z-50 mt-16 sm:mt-0"
       >
-        <div className="bg-white/20 backdrop-blur-md rounded-3xl shadow-2xl p-8 border border-white/20">
+        <div className="backdrop-blur-xl bg-transparent rounded-3xl shadow-2xl p-8 border border-white/20">
 
           {/* Logo */}
           <div className="text-center mb-8">
@@ -88,16 +86,18 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
               </div>
             </div>
 
-            <h1 className="font-playfair text-2xl font-bold text-[#FFD700] mb-2">
+            <h1 className="font-playfair text-2xl font-bold text-[#FFD700]">
               HotelEase Admin
             </h1>
-            <p className="text-sm text-[#DAEFB3] font-poppins font-semibold">
+
+            <p className="text-sm text-[#DAEFB3] font-poppins font-semibold mt-1">
               Sign in to manage your hotel operations
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
+
             <div>
               <Label className="text-white font-bold text-sm">Email</Label>
               <Input
@@ -105,7 +105,12 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 placeholder="admin@hotelease.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 bg-white/80 border border-gray-300 text-[#2D2D2D]"
+                className="
+                  h-12 w-full
+                  bg-white/80 
+                  border border-gray-300 
+                  text-[#2D2D2D]
+                "
                 required
               />
             </div>
@@ -117,24 +122,49 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 bg-white/80 border border-gray-300 text-[#2D2D2D]"
+                className="
+                  h-12 w-full
+                  bg-white/80 
+                  border border-gray-300 
+                  text-[#2D2D2D]
+                "
                 required
               />
             </div>
 
+            {/* FIXED BUTTON SPACING & EVEN HEIGHT */}
             <Button
               disabled={isLoading}
-              className="w-full h-11 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black hover:scale-[1.02]"
+              className="
+                w-full 
+                h-12
+                bg-gradient-to-r 
+                from-[#FFD700] 
+                to-[#FFA500] 
+                text-black 
+                font-semibold
+                hover:scale-[1.02]
+                transition-all
+              "
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
+
           </form>
 
           {/* Google Login */}
           <div className="mt-6">
             <Button
               onClick={handleGoogleLogin}
-              className="w-full h-11 bg-white text-black border border-gray-300 flex items-center justify-center gap-3 hover:bg-gray-100"
+              className="
+                w-full 
+                h-12 
+                bg-white 
+                text-black 
+                border border-gray-300 
+                flex items-center justify-center gap-3 
+                hover:bg-gray-100
+              "
             >
               <img
                 src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
