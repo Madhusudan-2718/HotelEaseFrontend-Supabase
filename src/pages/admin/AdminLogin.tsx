@@ -61,29 +61,33 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   return (
     <div
       className="
-      relative
-      min-h-[100dvh]
-      flex
-      items-center
-      justify-center
-      p-4
-      overflow-hidden
-    "
+        relative
+        min-h-[100dvh]
+        flex
+        items-center
+        justify-center
+        p-4
+        overflow-hidden
+      "
     >
 
-      {/* FULL BACKGROUND FIXED */}
+      {/* UPDATED FULLSCREEN BACKGROUND (FIXES WHITE STRIP) */}
       <div
         className="
-        absolute
-        inset-0
-        h-full
-        w-full
-        bg-cover
-        bg-center
-        bg-no-repeat
-        z-0
-      "
-        style={{ backgroundImage: `url(${loginbackground})` }}
+          absolute
+          inset-0
+          w-full
+          h-full
+          z-0
+          bg-center
+          bg-no-repeat
+          bg-cover
+          [background-size:100%_100%]
+          sm:bg-cover
+        "
+        style={{
+          backgroundImage: `url(${loginbackground})`,
+        }}
       />
 
       {/* DARK OVERLAY */}
@@ -103,18 +107,18 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             <div className="flex items-center justify-center mb-5">
               <div
                 className="
-              w-16 
-              h-16 
-              bg-gradient-to-br 
-              from-[#FFD700] 
-              via-[#FFA500] 
-              to-[#FFD700]
-              rounded-2xl 
-              flex 
-              items-center 
-              justify-center 
-              shadow-xl
-            "
+                  w-16 
+                  h-16 
+                  bg-gradient-to-br 
+                  from-[#FFD700] 
+                  via-[#FFA500] 
+                  to-[#FFD700]
+                  rounded-2xl 
+                  flex 
+                  items-center 
+                  justify-center 
+                  shadow-xl
+                "
               >
                 <Hotel className="w-8 h-8 text-white" />
               </div>
@@ -141,12 +145,12 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="
-              h-12 
-              bg-white/80 
-              border 
-              border-gray-300 
-              text-[#2D2D2D]
-            "
+                  h-12 
+                  bg-white/80 
+                  border 
+                  border-gray-300 
+                  text-[#2D2D2D]
+                "
                 required
               />
             </div>
@@ -161,12 +165,12 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="
-              h-12 
-              bg-white/80 
-              border 
-              border-gray-300 
-              text-[#2D2D2D]
-            "
+                  h-12 
+                  bg-white/80 
+                  border 
+                  border-gray-300 
+                  text-[#2D2D2D]
+                "
                 required
               />
             </div>
@@ -174,16 +178,16 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             <Button
               disabled={isLoading}
               className="
-            w-full 
-            h-11 
-            bg-gradient-to-r 
-            from-[#FFD700] 
-            to-[#FFA500] 
-            text-black 
-            font-semibold
-            hover:brightness-105
-            transition-all
-          "
+                w-full 
+                h-11 
+                bg-gradient-to-r 
+                from-[#FFD700] 
+                to-[#FFA500] 
+                text-black 
+                font-semibold
+                hover:brightness-105
+                transition-all
+              "
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
@@ -194,18 +198,18 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             <Button
               onClick={handleGoogleLogin}
               className="
-            w-full 
-            h-11 
-            bg-white 
-            text-black 
-            border 
-            border-gray-300 
-            flex 
-            items-center 
-            justify-center 
-            gap-3 
-            hover:bg-gray-100
-          "
+                w-full 
+                h-11 
+                bg-white 
+                text-black 
+                border 
+                border-gray-300 
+                flex 
+                items-center 
+                justify-center 
+                gap-3 
+                hover:bg-gray-100
+              "
             >
               <img
                 src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
@@ -222,6 +226,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
               Secure access for authorized personnel only
             </p>
           </div>
+
         </div>
       </motion.div>
     </div>
