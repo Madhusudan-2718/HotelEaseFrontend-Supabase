@@ -29,9 +29,8 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
           redirectTo: window.location.origin,
         },
       });
-
     } catch (error: any) {
-      toast.error(error.message || "Google Login Failed");
+      toast.error(error.message || "Google login failed");
       setIsLoading(false);
     }
   };
@@ -59,7 +58,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     setIsLoading(false);
   };
 
-  // FIX — Smooth Back to Home using animation end callback
+  // ✔ FINAL FIX — direct home navigation
   const goHome = () => {
     setIsExiting(true);
   };
@@ -73,7 +72,6 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
         style={{ backgroundImage: `url(${loginbackground})` }}
       />
 
-      {/* Overlay */}
       <div className="absolute inset-0 bg-black/60 z-10"></div>
 
       {/* Back Button */}
@@ -91,7 +89,6 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
         </span>
       </button>
 
-      {/* Login Card */}
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={
@@ -102,16 +99,13 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
         transition={{ duration: 0.35, ease: "easeInOut" }}
         onAnimationComplete={() => {
           if (isExiting) {
-            window.dispatchEvent(
-              new CustomEvent("navigate", { detail: "home" })
-            );
+            (window as any).navigateToPage("home");
           }
         }}
         className="relative w-full max-w-sm z-50 mt-16 sm:mt-0"
       >
-        <div className="bg-white/20 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-8 border border-white/20 relative overflow-hidden">
+        <div className="bg-white/20 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-8 border border-white/20">
 
-          {/* Logo */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-5">
               <div className="w-16 h-16 bg-gradient-to-br from-[#FFD700] via-[#FFA500] to-[#FFD700]
@@ -161,7 +155,6 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             </Button>
           </form>
 
-          {/* Google Login */}
           <div className="mt-6">
             <Button
               onClick={handleGoogleLogin}

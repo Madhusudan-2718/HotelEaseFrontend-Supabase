@@ -34,28 +34,22 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Allow global navigation dispatch
+  // 🌟 DIRECT GLOBAL NAVIGATION (Final Reliable Fix)
   (window as any).navigateToPage = (page: Page) => {
-    window.dispatchEvent(new CustomEvent("navigate", { detail: page }));
+    navigateToPage(page);
   };
 
   useEffect(() => {
     registerServiceWorker();
 
-    // Load home only when NOT logged in
+    // Load Home on fresh load if not authenticated
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         navigateToPage("home");
       }
     });
 
-    const handleNavigate = (event: CustomEvent) => {
-      navigateToPage(event.detail as Page);
-    };
-
-    window.addEventListener("navigate", handleNavigate as EventListener);
-
-    // Supabase Auth Listener
+    // Listen for Supabase auth changes
     supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
         setIsAdminAuthenticated(true);
@@ -67,10 +61,6 @@ export default function App() {
         navigateToPage("admin-login");
       }
     });
-
-    return () => {
-      window.removeEventListener("navigate", handleNavigate as EventListener);
-    };
   }, []);
 
   const handleAdminLogin = () => {
