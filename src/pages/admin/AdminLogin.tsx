@@ -6,6 +6,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "../../services/api";
+import React from "react";
 import loginbackground from "../../assets/images/loginbackground.png";
 
 interface AdminLoginProps {
@@ -18,20 +19,20 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
+  // ⭐ FIXED: Proper Google Login redirect
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/auth/callback`, 
         },
       });
-      
-      if (error) throw error;
     } catch (error: any) {
-      console.error('Error signing in with Google:', error);
-      toast.error(error.message || 'Failed to sign in with Google');
+      console.error("Error signing in with Google:", error);
+      toast.error(error.message || "Failed to sign in with Google");
       setIsLoading(false);
     }
   };
@@ -67,15 +68,14 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
         onLoginSuccess();
       }
     } catch (error: any) {
-      console.error('Error signing in:', error);
-      toast.error(error.message || 'Failed to sign in. Please check your credentials.');
+      console.error("Error signing in:", error);
+      toast.error(error.message || "Failed to sign in. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const goHome = () => {
-    // fade-out animation then navigate
     setIsExiting(true);
     setTimeout(() => {
       if ((window as any).navigateToPage) {
@@ -100,10 +100,10 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
       {/* Back Button */}
       <button
         onClick={goHome}
-        className="absolute top-4 left-3 sm:top-6 sm:left-6 z-[999] 
-        flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 
+        className="absolute top-4 left-3 sm:top-6 sm:left-6 z-[999]
+        flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2
         bg-[#FFD700]/90 backdrop-blur-sm rounded-lg shadow-md hover:shadow-lg
-        transition-all duration-200 hover:bg-[#FFD700] active:bg-[#FFD700] 
+        transition-all duration-200 hover:bg-[#FFD700] active:bg-[#FFD700]
         group border border-yellow-300/40"
       >
         <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-[#6B8E23]" />
@@ -204,12 +204,20 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
           </form>
 
           {/* Google Login */}
-          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="mt-6 relative z-[9999] pointer-events-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1 }}
+            className="mt-6 relative z-[9999] pointer-events-auto"
+          >
             <Button
               onClick={handleGoogleLogin}
               className="w-full h-11 bg-white text-black border border-gray-300 flex items-center justify-center gap-3 hover:bg-gray-100 transition"
             >
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" />
+              <img
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                className="w-5 h-5"
+              />
               Sign in with Google
             </Button>
           </motion.div>
