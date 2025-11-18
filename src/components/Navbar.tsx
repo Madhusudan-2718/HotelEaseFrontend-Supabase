@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Hotel, Menu, X } from 'lucide-react';
 import { Button } from './ui/button';
+import React from 'react';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -33,8 +34,12 @@ export function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
+
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollToSection('hero')}>
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => scrollToSection('hero')}
+          >
             <Hotel className={`w-8 h-8 ${isScrolled ? 'text-[#6B8E23]' : 'text-white'}`} />
             <span
               className={`font-playfair transition-colors ${
@@ -56,6 +61,7 @@ export function Navbar() {
             >
               Home
             </button>
+
             <button
               onClick={() => scrollToSection('services')}
               className={`transition-colors hover:text-[#FFD700] ${
@@ -64,6 +70,7 @@ export function Navbar() {
             >
               Services
             </button>
+
             <button
               onClick={() => scrollToSection('contact')}
               className={`transition-colors hover:text-[#FFD700] ${
@@ -72,11 +79,10 @@ export function Navbar() {
             >
               Contact
             </button>
+
+            {/* FIXED BUTTON */}
             <Button
-              onClick={() => {
-                const event = new CustomEvent('navigate', { detail: 'admin-login' });
-                window.dispatchEvent(event);
-              }}
+              onClick={() => (window as any).navigateToPage("admin-login")}
               className="bg-[#FFD700] text-[#2D2D2D] hover:bg-[#FFD700]/90"
             >
               Staff/Admin
@@ -98,27 +104,28 @@ export function Navbar() {
             <div className="flex flex-col gap-4">
               <button
                 onClick={() => scrollToSection('hero')}
-                className="text-[#2D2D2D] hover:text-[#FFD700] text-left transition-colors"
+                className="text-[#2D2D2D] hover:text-[#FFD700] text-left"
               >
                 Home
               </button>
+
               <button
                 onClick={() => scrollToSection('services')}
-                className="text-[#2D2D2D] hover:text-[#FFD700] text-left transition-colors"
+                className="text-[#2D2D2D] hover:text-[#FFD700] text-left"
               >
                 Services
               </button>
+
               <button
                 onClick={() => scrollToSection('contact')}
-                className="text-[#2D2D2D] hover:text-[#FFD700] text-left transition-colors"
+                className="text-[#2D2D2D] hover:text-[#FFD700] text-left"
               >
                 Contact
               </button>
+
+              {/* FIXED BUTTON */}
               <Button
-                onClick={() => {
-                  const event = new CustomEvent('navigate', { detail: 'admin-login' });
-                  window.dispatchEvent(event);
-                }}
+                onClick={() => (window as any).navigateToPage("admin-login")}
                 className="bg-[#FFD700] text-[#2D2D2D] hover:bg-[#FFD700]/90 w-full"
               >
                 Staff/Admin
