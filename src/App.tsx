@@ -34,7 +34,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // 🌟 DIRECT GLOBAL NAVIGATION (Final Reliable Fix)
+  // Simple direct global navigation
   (window as any).navigateToPage = (page: Page) => {
     navigateToPage(page);
   };
@@ -42,25 +42,32 @@ export default function App() {
   useEffect(() => {
     registerServiceWorker();
 
-    // Load Home on fresh load if not authenticated
+    // On load → if already logged in, go to dashboard
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        navigateToPage("home");
-      }
-    });
-
-    // Listen for Supabase auth changes
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session?.user) {
+      if (session?.user) {
         setIsAdminAuthenticated(true);
         navigateToPage("admin-dashboard");
-      }
-
-      if (event === "SIGNED_OUT") {
-        setIsAdminAuthenticated(false);
-        navigateToPage("admin-login");
+      } else {
+        navigateToPage("home"); // default page
       }
     });
+
+    // Supabase auth listener
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "SIGNED_IN" && session?.user) {
+          setIsAdminAuthenticated(true);
+          navigateToPage("admin-dashboard");
+        }
+
+        if (event === "SIGNED_OUT") {
+          setIsAdminAuthenticated(false);
+          navigateToPage("home"); // logout → home
+        }
+      }
+    );
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   const handleAdminLogin = () => {
@@ -71,7 +78,7 @@ export default function App() {
   const handleAdminLogout = async () => {
     await supabase.auth.signOut();
     setIsAdminAuthenticated(false);
-    navigateToPage("admin-login");
+    navigateToPage("home"); // logout → home (final behavior)
   };
 
   return (

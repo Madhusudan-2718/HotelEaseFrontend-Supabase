@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Hotel, Lock, ArrowLeft } from "lucide-react";
+import { Hotel, Lock } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -17,7 +17,6 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
 
   const handleGoogleLogin = async () => {
     try {
@@ -29,6 +28,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
           redirectTo: window.location.origin,
         },
       });
+
     } catch (error: any) {
       toast.error(error.message || "Google login failed");
       setIsLoading(false);
@@ -45,7 +45,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     });
 
     if (error) {
-      toast.error(error.message || "Invalid credentials.");
+      toast.error(error.message || "Invalid credentials");
       setIsLoading(false);
       return;
     }
@@ -58,50 +58,20 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     setIsLoading(false);
   };
 
-  // ✔ FINAL FIX — direct home navigation
-  const goHome = () => {
-    setIsExiting(true);
-  };
-
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
 
-      {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
         style={{ backgroundImage: `url(${loginbackground})` }}
       />
 
-      <div className="absolute inset-0 bg-black/60 z-10"></div>
-
-      {/* Back Button */}
-      <button
-        onClick={goHome}
-        className="absolute top-4 left-3 sm:top-6 sm:left-6 z-[999]
-        flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2
-        bg-[#FFD700]/90 backdrop-blur-sm rounded-lg shadow-md hover:shadow-lg
-        transition-all duration-200 hover:bg-[#FFD700] active:bg-[#FFD700]
-        group border border-yellow-300/40"
-      >
-        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-[#6B8E23]" />
-        <span className="font-poppins text-sm sm:text-base font-semibold text-black">
-          Back to Home
-        </span>
-      </button>
+      <div className="absolute inset-0 bg-black/60 z-10" />
 
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={
-          isExiting
-            ? { opacity: 0, y: 40, scale: 0.9 }
-            : { opacity: 1, y: 0, scale: 1 }
-        }
+        animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.35, ease: "easeInOut" }}
-        onAnimationComplete={() => {
-          if (isExiting) {
-            (window as any).navigateToPage("home");
-          }
-        }}
         className="relative w-full max-w-sm z-50 mt-16 sm:mt-0"
       >
         <div className="bg-white/20 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-8 border border-white/20">
@@ -123,6 +93,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+
             <div>
               <Label className="text-white font-bold text-sm">Email</Label>
               <Input
@@ -173,6 +144,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
               <Lock className="w-3 h-3 text-[#DAEFB3]" /> Secure access for authorized personnel only
             </p>
           </div>
+
         </div>
       </motion.div>
     </div>
