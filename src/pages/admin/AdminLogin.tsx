@@ -28,6 +28,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
           redirectTo: window.location.origin,
         },
       });
+
     } catch (error: any) {
       toast.error(error.message || "Google login failed");
       setIsLoading(false);
@@ -44,7 +45,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     });
 
     if (error) {
-      toast.error(error.message || "Invalid credentials");
+      toast.error(error.message || "Invalid credentials.");
       setIsLoading(false);
       return;
     }
@@ -58,87 +59,44 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   };
 
   return (
-    <div
-      className="
-        relative
-        h-[100dvh]
-        w-full
-        flex
-        items-center
-        justify-center
-        overflow-hidden
-      "
-    >
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+
       {/* Background */}
       <div
-        className="
-          absolute
-          inset-0
-          w-full
-          h-full
-          bg-cover
-          bg-center
-          bg-no-repeat
-        "
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
         style={{ backgroundImage: `url(${loginbackground})` }}
       />
 
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/60" />
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/60 z-10"></div>
 
-      {/* CENTERED CARD */}
+      {/* Login Card */}
       <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        className="
-          relative
-          z-50
-          w-[90%]
-          max-w-sm
-        "
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.35, ease: "easeInOut" }}
+        className="relative w-full max-w-sm z-50 mt-16 sm:mt-0"
       >
-        <div
-          className="
-            bg-white/10 
-            backdrop-blur-md 
-            rounded-3xl 
-            shadow-2xl 
-            p-6 
-            border 
-            border-white/20
-          "
-        >
-          {/* Logo Section */}
+        <div className="bg-white/20 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-8 border border-white/20">
+
+          {/* Logo */}
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <div
-                className="
-                  w-16 h-16
-                  bg-gradient-to-br
-                  from-[#FFD700]
-                  via-[#FFA500]
-                  to-[#FFD700]
-                  rounded-2xl
-                  flex items-center justify-center
-                  shadow-xl
-                "
-              >
+            <div className="flex items-center justify-center mb-5">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#FFD700] via-[#FFA500] to-[#FFD700]
+                rounded-2xl flex items-center justify-center shadow-xl">
                 <Hotel className="w-8 h-8 text-white" />
               </div>
             </div>
 
-            <h1 className="font-playfair text-2xl font-bold text-[#FFD700] mb-1">
+            <h1 className="font-playfair text-2xl font-bold text-[#FFD700] mb-2">
               HotelEase Admin
             </h1>
-
             <p className="text-sm text-[#DAEFB3] font-poppins font-semibold">
               Sign in to manage your hotel operations
             </p>
           </div>
 
-          {/* FORM */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <Label className="text-white font-bold text-sm">Email</Label>
               <Input
@@ -146,13 +104,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 placeholder="admin@hotelease.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="
-                  h-11
-                  bg-white/80
-                  border border-gray-300
-                  text-[#2D2D2D]
-                  rounded-lg
-                "
+                className="h-12 bg-white/80 border border-gray-300 text-[#2D2D2D]"
                 required
               />
             </div>
@@ -164,50 +116,24 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="
-                  h-11
-                  bg-white/80
-                  border border-gray-300
-                  text-[#2D2D2D]
-                  rounded-lg
-                "
+                className="h-12 bg-white/80 border border-gray-300 text-[#2D2D2D]"
                 required
               />
             </div>
 
-            {/* Sign In button */}
             <Button
               disabled={isLoading}
-              className="
-                w-full
-                h-10
-                bg-gradient-to-r
-                from-[#FFD700]
-                to-[#FFA500]
-                text-black
-                font-semibold
-                rounded-lg
-                hover:brightness-105
-              "
+              className="w-full h-11 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black hover:scale-[1.02]"
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
-          {/* Google Button */}
-          <div className="mt-4">
+          {/* Google Login */}
+          <div className="mt-6">
             <Button
               onClick={handleGoogleLogin}
-              className="
-                w-full
-                h-10
-                bg-white
-                text-black
-                border border-gray-300
-                flex items-center justify-center gap-3
-                hover:bg-gray-100
-                rounded-lg
-              "
+              className="w-full h-11 bg-white text-black border border-gray-300 flex items-center justify-center gap-3 hover:bg-gray-100"
             >
               <img
                 src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
@@ -218,10 +144,9 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
           </div>
 
           {/* Footer */}
-          <div className="mt-5 text-center">
+          <div className="mt-6 text-center">
             <p className="text-xs text-[#DAEFB3] flex items-center justify-center gap-2 font-semibold">
-              <Lock className="w-3 h-3 text-[#DAEFB3]" />
-              Secure access for authorized personnel only
+              <Lock className="w-3 h-3 text-[#DAEFB3]" /> Secure access for authorized personnel only
             </p>
           </div>
         </div>
