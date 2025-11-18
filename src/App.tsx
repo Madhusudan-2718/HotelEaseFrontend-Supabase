@@ -12,7 +12,6 @@ import Restaurant from "./pages/Restaurant";
 import TravelDesk from "./pages/TravelDesk";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AuthCallback from "./pages/auth/callback"
 import { Toaster } from "sonner";
 import { AppProvider } from "./context/AppContext";
 import { supabase } from "./services/api";
@@ -24,8 +23,7 @@ type Page =
   | "restaurant"
   | "travel"
   | "admin-login"
-  | "admin-dashboard"
-  | "auth-callback"; // ⭐ NEW PAGE TYPE
+  | "admin-dashboard";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("home");
@@ -36,7 +34,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // global navigation helper
+  // Navigation helper for components
   (window as any).navigateToPage = (page: Page) => {
     window.dispatchEvent(new CustomEvent("navigate", { detail: page }));
   };
@@ -44,56 +42,31 @@ export default function App() {
   useEffect(() => {
     registerServiceWorker();
 
-    // ⭐ NEW FIX — Handle callback route immediately
-    if (window.location.pathname === "/auth/callback") {
-      setCurrentPage("auth-callback");
-      return; // Stop further checks until callback completes
-    }
-
-    // ⭐ Fix 1: Handle Google OAuth redirects before state loads
-    if (
-      window.location.pathname === "/dashboard" &&
-      window.location.hash.includes("access_token")
-    ) {
-      setIsAdminAuthenticated(true);
-      setCurrentPage("admin-dashboard");
-
-      setTimeout(() => {
-        window.history.replaceState({}, "", "/");
-      }, 200);
-    }
-
-    // Custom navigation event listener
-    const handleNavigate = (event: CustomEvent) => {
-      const page = event.detail as Page;
-      navigateToPage(page);
-    };
-    window.addEventListener("navigate", handleNavigate as EventListener);
-
-    // ⭐ Fix 2: Restore session on page reload
+    // On load → check supabase session
     const checkAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
 
-        if (session?.user) {
+      if (session?.user) {
+        setIsAdminAuthenticated(true);
+        setCurrentPage("admin-dashboard");
+        localStorage.setItem("adminAuthenticated", "true");
+      } else {
+        const saved = localStorage.getItem("adminAuthenticated");
+        if (saved === "true") {
           setIsAdminAuthenticated(true);
           setCurrentPage("admin-dashboard");
-          localStorage.setItem("adminAuthenticated", "true");
-        } else {
-          const saved = localStorage.getItem("adminAuthenticated");
-          if (saved === "true") {
-            setIsAdminAuthenticated(true);
-            setCurrentPage("admin-dashboard");
-          }
         }
-      } catch (error) {
-        console.error("Error checking auth:", error);
       }
     };
 
     checkAuth();
 
-    // ⭐ Fix 3: Auth state listener
+    const handleNavigate = (event: CustomEvent) => {
+      navigateToPage(event.detail as Page);
+    };
+
+    window.addEventListener("navigate", handleNavigate as EventListener);
+
     supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
         setIsAdminAuthenticated(true);
@@ -107,9 +80,8 @@ export default function App() {
 
       if (event === "SIGNED_OUT") {
         setIsAdminAuthenticated(false);
-        setCurrentPage("admin-login");
         localStorage.removeItem("adminAuthenticated");
-        window.history.replaceState({}, "", "/admin-login");
+        setCurrentPage("admin-login");
       }
     });
 
@@ -118,86 +90,35 @@ export default function App() {
     };
   }, []);
 
-  // Manual email login for admins
   const handleAdminLogin = () => {
     setIsAdminAuthenticated(true);
     localStorage.setItem("adminAuthenticated", "true");
     setCurrentPage("admin-dashboard");
-
-    window.history.pushState({}, "", "/dashboard");
-    setTimeout(() => {
-      window.history.replaceState({}, "", "/");
-    }, 200);
   };
 
-  // Admin logout
   const handleAdminLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      setIsAdminAuthenticated(false);
-      localStorage.removeItem("adminAuthenticated");
-      setCurrentPage("admin-login");
-      window.history.replaceState({}, "", "/admin-login");
-    } catch (error) {
-      console.error("Error signing out:", error);
-      setIsAdminAuthenticated(false);
-      localStorage.removeItem("adminAuthenticated");
-    }
+    await supabase.auth.signOut();
+    setIsAdminAuthenticated(false);
+    localStorage.removeItem("adminAuthenticated");
+    setCurrentPage("admin-login");
   };
 
   return (
     <AppProvider>
-      {/* ⭐ Callback Page */}
-      {currentPage === "auth-callback" && (
-        <>
-          <AuthCallback />
-          <Toaster position="top-right" richColors />
-        </>
-      )}
+      {currentPage === "housekeeping" && <Housekeeping onBack={() => navigateToPage("home")} />}
 
-      {/* Housekeeping */}
-      {currentPage === "housekeeping" && (
-        <>
-          <Housekeeping onBack={() => navigateToPage("home")} />
-          <Toaster position="top-right" richColors />
-        </>
-      )}
+      {currentPage === "restaurant" && <Restaurant onBack={() => navigateToPage("home")} />}
 
-      {/* Restaurant */}
-      {currentPage === "restaurant" && (
-        <>
-          <Restaurant onBack={() => navigateToPage("home")} />
-          <Toaster position="top-right" richColors />
-        </>
-      )}
+      {currentPage === "travel" && <TravelDesk onBack={() => navigateToPage("home")} />}
 
-      {/* Travel */}
-      {currentPage === "travel" && (
-        <>
-          <TravelDesk onBack={() => navigateToPage("home")} />
-          <Toaster position="top-right" richColors />
-        </>
-      )}
-
-      {/* Admin Login */}
       {currentPage === "admin-login" && (
-        <>
-          <AdminLogin onLoginSuccess={handleAdminLogin} />
-          <Toaster position="top-right" richColors />
-        </>
+        <AdminLogin onLoginSuccess={handleAdminLogin} />
       )}
 
-      {/* Admin Dashboard */}
       {currentPage === "admin-dashboard" && isAdminAuthenticated && (
-        <>
-          <AdminDashboard onLogout={handleAdminLogout} />
-          <Toaster position="top-right" richColors />
-        </>
+        <AdminDashboard onLogout={handleAdminLogout} />
       )}
 
-      {/* Homepage */}
       {currentPage === "home" && (
         <div className="min-h-screen">
           <Navbar />
@@ -207,9 +128,10 @@ export default function App() {
           <Footer />
           <InstallPrompt />
           <BackToTop />
-          <Toaster position="top-right" richColors />
         </div>
       )}
+
+      <Toaster position="top-right" richColors />
     </AppProvider>
   );
 }
