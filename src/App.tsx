@@ -42,7 +42,7 @@ export default function App() {
   useEffect(() => {
     registerServiceWorker();
 
-    // 🔥 FIX: Only set HOME when user is not logged in
+    // Load home only when NOT logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         navigateToPage("home");
@@ -64,7 +64,7 @@ export default function App() {
 
       if (event === "SIGNED_OUT") {
         setIsAdminAuthenticated(false);
-        navigateToPage("admin-login"); // Logout goes to admin login
+        navigateToPage("admin-login");
       }
     });
 

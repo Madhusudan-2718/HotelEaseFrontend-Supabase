@@ -19,7 +19,6 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
-  // Google Login
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
@@ -60,17 +59,14 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     setIsLoading(false);
   };
 
-  // 🔥 FIXED — Smooth Back to Home
+  // FIX — Smooth Back to Home using animation end callback
   const goHome = () => {
     setIsExiting(true);
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent("navigate", { detail: "home" }));
-    }, 300);
   };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
-      
+
       {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
@@ -104,6 +100,13 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             : { opacity: 1, y: 0, scale: 1 }
         }
         transition={{ duration: 0.35, ease: "easeInOut" }}
+        onAnimationComplete={() => {
+          if (isExiting) {
+            window.dispatchEvent(
+              new CustomEvent("navigate", { detail: "home" })
+            );
+          }
+        }}
         className="relative w-full max-w-sm z-50 mt-16 sm:mt-0"
       >
         <div className="bg-white/20 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-8 border border-white/20 relative overflow-hidden">
