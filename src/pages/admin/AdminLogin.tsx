@@ -77,7 +77,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
         transition={{ duration: 0.35, ease: "easeInOut" }}
         className="relative w-full max-w-sm z-50 mt-16 sm:mt-0"
       >
-        <div className="bg-white/20 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-8 border border-white/20">
+        <div className="bg-transparent backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-8 border border-white/20">
 
           {/* Logo */}
           <div className="text-center mb-8">
@@ -96,7 +96,9 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          {/* FORM */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+
             <div>
               <Label className="text-white font-bold text-sm">Email</Label>
               <Input
@@ -104,7 +106,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 placeholder="admin@hotelease.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 bg-white/80 border border-gray-300 text-[#2D2D2D]"
+                className="h-12 w-full bg-white/80 border border-gray-300 text-[#2D2D2D]"
                 required
               />
             </div>
@@ -116,7 +118,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 bg-white/80 border border-gray-300 text-[#2D2D2D]"
+                className="h-12 w-full bg-white/80 border border-gray-300 text-[#2D2D2D]"
                 required
               />
             </div>
@@ -129,8 +131,8 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             </Button>
           </form>
 
-          {/* Google Login */}
-          <div className="mt-6">
+          {/* GOOGLE LOGIN */}
+          <div className="mt-4">
             <Button
               onClick={handleGoogleLogin}
               className="w-full h-11 bg-white text-black border border-gray-300 flex items-center justify-center gap-3 hover:bg-gray-100"
@@ -143,7 +145,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             </Button>
           </div>
 
-          {/* Footer */}
+          {/* FOOTER */}
           <div className="mt-6 text-center">
             <p className="text-xs text-[#DAEFB3] flex items-center justify-center gap-2 font-semibold">
               <Lock className="w-3 h-3 text-[#DAEFB3]" /> Secure access for authorized personnel only
