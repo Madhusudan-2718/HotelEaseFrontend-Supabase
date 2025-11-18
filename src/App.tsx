@@ -34,7 +34,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Navigation helper for components
+  // Allow global navigation dispatch
   (window as any).navigateToPage = (page: Page) => {
     window.dispatchEvent(new CustomEvent("navigate", { detail: page }));
   };
@@ -42,24 +42,8 @@ export default function App() {
   useEffect(() => {
     registerServiceWorker();
 
-    // On load → check supabase session
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (session?.user) {
-        setIsAdminAuthenticated(true);
-        setCurrentPage("admin-dashboard");
-        localStorage.setItem("adminAuthenticated", "true");
-      } else {
-        const saved = localStorage.getItem("adminAuthenticated");
-        if (saved === "true") {
-          setIsAdminAuthenticated(true);
-          setCurrentPage("admin-dashboard");
-        }
-      }
-    };
-
-    checkAuth();
+    // 👇 Always open HOME on fresh load (Option 1)
+    navigateToPage("home");
 
     const handleNavigate = (event: CustomEvent) => {
       navigateToPage(event.detail as Page);
@@ -67,21 +51,16 @@ export default function App() {
 
     window.addEventListener("navigate", handleNavigate as EventListener);
 
+    // 🔥 Supabase Auth Listener
     supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
         setIsAdminAuthenticated(true);
-        setCurrentPage("admin-dashboard");
-        localStorage.setItem("adminAuthenticated", "true");
-
-        setTimeout(() => {
-          window.history.replaceState({}, "", "/");
-        }, 200);
+        navigateToPage("admin-dashboard");
       }
 
       if (event === "SIGNED_OUT") {
         setIsAdminAuthenticated(false);
-        localStorage.removeItem("adminAuthenticated");
-        setCurrentPage("admin-login");
+        navigateToPage("admin-login");
       }
     });
 
@@ -92,24 +71,28 @@ export default function App() {
 
   const handleAdminLogin = () => {
     setIsAdminAuthenticated(true);
-    localStorage.setItem("adminAuthenticated", "true");
-    setCurrentPage("admin-dashboard");
+    navigateToPage("admin-dashboard");
   };
 
   const handleAdminLogout = async () => {
     await supabase.auth.signOut();
     setIsAdminAuthenticated(false);
-    localStorage.removeItem("adminAuthenticated");
-    setCurrentPage("admin-login");
+    navigateToPage("admin-login");
   };
 
   return (
     <AppProvider>
-      {currentPage === "housekeeping" && <Housekeeping onBack={() => navigateToPage("home")} />}
+      {currentPage === "housekeeping" && (
+        <Housekeeping onBack={() => navigateToPage("home")} />
+      )}
 
-      {currentPage === "restaurant" && <Restaurant onBack={() => navigateToPage("home")} />}
+      {currentPage === "restaurant" && (
+        <Restaurant onBack={() => navigateToPage("home")} />
+      )}
 
-      {currentPage === "travel" && <TravelDesk onBack={() => navigateToPage("home")} />}
+      {currentPage === "travel" && (
+        <TravelDesk onBack={() => navigateToPage("home")} />
+      )}
 
       {currentPage === "admin-login" && (
         <AdminLogin onLoginSuccess={handleAdminLogin} />
