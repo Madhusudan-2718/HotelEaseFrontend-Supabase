@@ -57,49 +57,71 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
-
-      {/* Background Image */}
+    <div
+      className="
+        relative
+        h-screen
+        w-screen
+        flex
+        items-center
+        justify-center
+        overflow-hidden
+      "
+    >
+      {/* FULL BACKGROUND */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
+        className="
+          absolute inset-0 w-full h-full z-0
+          bg-cover bg-center bg-no-repeat
+        "
         style={{ backgroundImage: `url(${loginbackground})` }}
       />
 
-      {/* Dark Overlay */}
+      {/* DARK OVERLAY */}
       <div className="absolute inset-0 bg-black/60 z-10" />
 
-      {/* Login Card */}
+      {/* LOGIN CARD */}
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 25 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="relative w-full max-w-sm z-50 mt-16 sm:mt-0"
+        className="relative z-50 w-full max-w-sm"
       >
-        <div className="backdrop-blur-xl bg-transparent rounded-3xl shadow-2xl p-8 border border-white/20">
+        <div className="backdrop-blur-xl bg-transparent rounded-3xl shadow-2xl p-6 sm:p-6 border border-white/20">
 
-          {/* Logo */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-5">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#FFD700] via-[#FFA500] to-[#FFD700]
-                rounded-2xl flex items-center justify-center shadow-xl">
-                <Hotel className="w-8 h-8 text-white" />
+          {/* LOGO */}
+          <div className="text-center mb-6">
+            <div className="flex items-center justify-center mb-4">
+              <div
+                className="
+                  w-14 h-14
+                  bg-gradient-to-br
+                  from-[#FFD700]
+                  via-[#FFA500]
+                  to-[#FFD700]
+                  rounded-2xl
+                  flex items-center justify-center shadow-xl
+                "
+              >
+                <Hotel className="w-7 h-7 text-white" />
               </div>
             </div>
 
-            <h1 className="font-playfair text-2xl font-bold text-[#FFD700]">
+            <h1 className="font-playfair text-xl font-bold text-[#FFD700]">
               HotelEase Admin
             </h1>
 
-            <p className="text-sm text-[#DAEFB3] font-poppins font-semibold mt-1">
+            <p className="text-xs text-[#DAEFB3] font-poppins font-semibold mt-1">
               Sign in to manage your hotel operations
             </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-
+          {/* FORM */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <Label className="text-white font-bold text-sm">Email</Label>
+              <Label className="text-white font-bold text-sm mb-1 block">
+                Email
+              </Label>
               <Input
                 type="email"
                 placeholder="admin@hotelease.com"
@@ -107,8 +129,8 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 onChange={(e) => setEmail(e.target.value)}
                 className="
                   h-12 w-full
-                  bg-white/80 
-                  border border-gray-300 
+                  bg-white/80
+                  border border-gray-300
                   text-[#2D2D2D]
                 "
                 required
@@ -116,7 +138,9 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             </div>
 
             <div>
-              <Label className="text-white font-bold text-sm">Password</Label>
+              <Label className="text-white font-bold text-sm mb-1 block">
+                Password
+              </Label>
               <Input
                 type="password"
                 placeholder="Enter your password"
@@ -124,45 +148,40 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 className="
                   h-12 w-full
-                  bg-white/80 
-                  border border-gray-300 
+                  bg-white/80
+                  border border-gray-300
                   text-[#2D2D2D]
                 "
                 required
               />
             </div>
 
-            {/* FIXED BUTTON SPACING & EVEN HEIGHT */}
+            {/* SIGN IN BUTTON FIXED SIZE & SPACING */}
             <Button
               disabled={isLoading}
               className="
-                w-full 
-                h-12
-                bg-gradient-to-r 
-                from-[#FFD700] 
-                to-[#FFA500] 
-                text-black 
-                font-semibold
+                w-full h-12
+                bg-gradient-to-r
+                from-[#FFD700]
+                to-[#FFA500]
+                text-black font-semibold
                 hover:scale-[1.02]
                 transition-all
               "
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
-
           </form>
 
-          {/* Google Login */}
-          <div className="mt-6">
+          {/* GOOGLE LOGIN */}
+          <div className="mt-5">
             <Button
               onClick={handleGoogleLogin}
               className="
-                w-full 
-                h-12 
-                bg-white 
-                text-black 
-                border border-gray-300 
-                flex items-center justify-center gap-3 
+                w-full h-12
+                bg-white text-black
+                border border-gray-300
+                flex items-center justify-center gap-3
                 hover:bg-gray-100
               "
             >
@@ -174,10 +193,11 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             </Button>
           </div>
 
-          {/* Footer */}
-          <div className="mt-6 text-center">
+          {/* FOOTER */}
+          <div className="mt-5 text-center">
             <p className="text-xs text-[#DAEFB3] flex items-center justify-center gap-2 font-semibold">
-              <Lock className="w-3 h-3 text-[#DAEFB3]" /> Secure access for authorized personnel only
+              <Lock className="w-3 h-3 text-[#DAEFB3]" />
+              Secure access for authorized personnel only
             </p>
           </div>
 
