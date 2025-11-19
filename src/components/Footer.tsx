@@ -1,5 +1,5 @@
 import { Hotel, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
-
+import React from 'react';
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -52,24 +52,6 @@ export function Footer() {
                   style={{ fontSize: '0.9375rem' }}
                 >
                   Services
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-white/70 hover:text-[#FFD700] transition-colors"
-                  style={{ fontSize: '0.9375rem' }}
-                >
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-white/70 hover:text-[#FFD700] transition-colors"
-                  style={{ fontSize: '0.9375rem' }}
-                >
-                  Careers
                 </a>
               </li>
             </ul>
