@@ -5,9 +5,11 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { toast } from "sonner";
-import { supabase } from "../../services/api";
 import loginbackground from "../../assets/images/loginbackground.png";
 import React from "react";
+
+import { validateLogin, createSession } from "../../utils/authLocal";
+import { supabase } from "../../services/api";
 
 interface AdminLoginProps {
   onLoginSuccess: () => void;
@@ -18,6 +20,33 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // ---------------------------------------
+  // LOCAL LOGIN (email + password)
+  // ---------------------------------------
+  const handleLocalLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const user = await validateLogin(email, password);
+
+    if (!user) {
+      toast.error("Invalid credentials.");
+      setIsLoading(false);
+      return;
+    }
+
+    // save session
+    createSession(user);
+
+    toast.success("Login successful!");
+    setIsLoading(false);
+
+    onLoginSuccess(); // redirect to dashboard
+  };
+
+  // ---------------------------------------
+  // GOOGLE AUTH (unchanged)
+  // ---------------------------------------
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
@@ -33,29 +62,6 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
       toast.error(error.message || "Google login failed");
       setIsLoading(false);
     }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      toast.error(error.message || "Invalid credentials.");
-      setIsLoading(false);
-      return;
-    }
-
-    if (data.user) {
-      toast.success("Login successful!");
-      onLoginSuccess();
-    }
-
-    setIsLoading(false);
   };
 
   return (
@@ -96,8 +102,8 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             </p>
           </div>
 
-          {/* FORM */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {/* LOCAL LOGIN FORM */}
+          <form onSubmit={handleLocalLogin} className="space-y-6">
 
             <div>
               <Label className="text-white font-bold text-sm">Email</Label>
@@ -106,7 +112,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 placeholder="admin@hotelease.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 w-full bg-white/80 border border-gray-300 text-[#2D2D2D]"
+                className="h-12 w-full bg-white/80 border border-gray-300 text-white "
                 required
               />
             </div>
@@ -118,7 +124,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 w-full bg-white/80 border border-gray-300 text-[#2D2D2D]"
+                className="h-12 w-full bg-white/80 border border-gray-300 text-white"
                 required
               />
             </div>
@@ -143,6 +149,19 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
               />
               Sign in with Google
             </Button>
+          </div>
+
+          {/* SIGN UP LINK */}
+          <div className="mt-4 text-center">
+            <p className="text-sm text-white">
+              Don't have an account?{" "}
+              <span
+                onClick={() => (window as any).navigateToPage("signup")}
+                className="text-[#FFD700] cursor-pointer font-semibold hover:underline"
+              >
+                Create one
+              </span>
+            </p>
           </div>
 
           {/* FOOTER */}

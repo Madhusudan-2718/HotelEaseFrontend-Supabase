@@ -14,8 +14,15 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import { Toaster } from "sonner";
 import { AppProvider } from "./context/AppContext";
-import { supabase } from "./services/api";
+
 import React from "react";
+import SignUp from "./pages/admin/SignUp";
+
+// LOCAL AUTH
+import { getSession, clearSession } from "./utils/authLocal";
+
+// GOOGLE AUTH ONLY
+import { supabase } from "./services/api";
 
 type Page =
   | "home"
@@ -23,7 +30,8 @@ type Page =
   | "restaurant"
   | "travel"
   | "admin-login"
-  | "admin-dashboard";
+  | "admin-dashboard"
+  | "signup";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("home");
@@ -34,25 +42,36 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Simple direct global navigation
+  // GLOBAL NAV (no change)
   (window as any).navigateToPage = (page: Page) => {
     navigateToPage(page);
   };
 
+  // --------------------------------------------------------------------------------
+  // ON LOAD → CHECK LOCAL SESSION FIRST
+  // --------------------------------------------------------------------------------
   useEffect(() => {
     registerServiceWorker();
 
-    // On load → if already logged in, go to dashboard
+    const localUser = getSession();
+
+    if (localUser) {
+      setIsAdminAuthenticated(true);
+      navigateToPage("admin-dashboard");
+      return;
+    }
+
+    // If no local user, check Supabase Google session ONLY
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setIsAdminAuthenticated(true);
         navigateToPage("admin-dashboard");
       } else {
-        navigateToPage("home"); // default page
+        navigateToPage("home");
       }
     });
 
-    // Supabase auth listener
+    // Supabase listener ONLY for Google logout
     const { data: listener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === "SIGNED_IN" && session?.user) {
@@ -62,7 +81,7 @@ export default function App() {
 
         if (event === "SIGNED_OUT") {
           setIsAdminAuthenticated(false);
-          navigateToPage("home"); // logout → home
+          navigateToPage("home");
         }
       }
     );
@@ -70,15 +89,22 @@ export default function App() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  // --------------------------------------------------------------------------------
+  // LOCAL LOGIN SUCCESS HANDLER
+  // --------------------------------------------------------------------------------
   const handleAdminLogin = () => {
     setIsAdminAuthenticated(true);
     navigateToPage("admin-dashboard");
   };
 
+  // --------------------------------------------------------------------------------
+  // LOGOUT → Clear both local + Supabase Google
+  // --------------------------------------------------------------------------------
   const handleAdminLogout = async () => {
-    await supabase.auth.signOut();
+    clearSession();
+    await supabase.auth.signOut(); // for Google users
     setIsAdminAuthenticated(false);
-    navigateToPage("home"); // logout → home (final behavior)
+    navigateToPage("home");
   };
 
   return (
@@ -113,6 +139,10 @@ export default function App() {
           <InstallPrompt />
           <BackToTop />
         </div>
+      )}
+
+      {currentPage === "signup" && (
+        <SignUp onBack={() => navigateToPage("admin-login")} />
       )}
 
       <Toaster position="top-right" richColors />
