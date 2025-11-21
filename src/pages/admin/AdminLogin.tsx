@@ -8,11 +8,10 @@ import { toast } from "sonner";
 import loginbackground from "../../assets/images/loginbackground.png";
 import React from "react";
 
-import { validateLogin, createSession } from "../../utils/authLocal";
 import { supabase } from "../../services/api";
 
 interface AdminLoginProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: (role: string) => void;
 }
 
 export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
@@ -20,46 +19,62 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // ---------------------------------------
-  // LOCAL LOGIN (email + password)
-  // ---------------------------------------
-  const handleLocalLogin = async (e: React.FormEvent) => {
+  // -------------------------------------------------------
+  // NEW: Supabase Password Login + Role Fetch
+  // -------------------------------------------------------
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const user = await validateLogin(email, password);
-
-    if (!user) {
-      toast.error("Invalid credentials.");
-      setIsLoading(false);
-      return;
-    }
-
-    // save session
-    createSession(user);
-
-    toast.success("Login successful!");
-    setIsLoading(false);
-
-    onLoginSuccess(); // redirect to dashboard
-  };
-
-  // ---------------------------------------
-  // GOOGLE AUTH (unchanged)
-  // ---------------------------------------
-  const handleGoogleLogin = async () => {
     try {
-      setIsLoading(true);
-
-      await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin,
-        },
+      // 1) Login using email + password
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-    } catch (error: any) {
-      toast.error(error.message || "Google login failed");
+      if (error) {
+        toast.error(error.message || "Invalid credentials.");
+        setIsLoading(false);
+        return;
+      }
+
+      const user = data.user;
+      if (!user) {
+        toast.error("Login failed.");
+        setIsLoading(false);
+        return;
+      }
+
+      // 2) Fetch role from app_users
+      const { data: roleData, error: roleError } = await supabase
+        .from("app_users")
+        .select("role, status")
+        .eq("id", user.id)
+        .single();
+
+      if (roleError || !roleData) {
+        toast.error("Unauthorized access. No role assigned.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Suspended check
+      if (roleData.status === "suspended") {
+        toast.error("Your account has been suspended.");
+        await supabase.auth.signOut();
+        setIsLoading(false);
+        return;
+      }
+
+      // 3) Role-based redirect
+      toast.success("Login successful!");
+      setIsLoading(false);
+
+      onLoginSuccess(roleData.role);
+
+    } catch (err: any) {
+      toast.error(err.message || "Login failed.");
       setIsLoading(false);
     }
   };
@@ -95,15 +110,15 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             </div>
 
             <h1 className="font-playfair text-2xl font-bold text-[#FFD700] mb-2">
-              HotelEase Admin
+              HotelEase Admin Login
             </h1>
             <p className="text-sm text-[#DAEFB3] font-poppins font-semibold">
-              Sign in to manage your hotel operations
+              Authorized access only
             </p>
           </div>
 
-          {/* LOCAL LOGIN FORM */}
-          <form onSubmit={handleLocalLogin} className="space-y-6">
+          {/* LOGIN FORM */}
+          <form onSubmit={handleLogin} className="space-y-6">
 
             <div>
               <Label className="text-white font-bold text-sm">Email</Label>
@@ -121,7 +136,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
               <Label className="text-white font-bold text-sm">Password</Label>
               <Input
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-12 w-full bg-white/80 border border-gray-300 text-white"
@@ -135,41 +150,16 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
+
           </form>
-
-          {/* GOOGLE LOGIN */}
-          <div className="mt-4">
-            <Button
-              onClick={handleGoogleLogin}
-              className="w-full h-11 bg-white text-black border border-gray-300 flex items-center justify-center gap-3 hover:bg-gray-100"
-            >
-              <img
-                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                className="w-5 h-5"
-              />
-              Sign in with Google
-            </Button>
-          </div>
-
-          {/* SIGN UP LINK */}
-          <div className="mt-4 text-center">
-            <p className="text-sm text-white">
-              Don't have an account?{" "}
-              <span
-                onClick={() => (window as any).navigateToPage("signup")}
-                className="text-[#FFD700] cursor-pointer font-semibold hover:underline"
-              >
-                Create one
-              </span>
-            </p>
-          </div>
 
           {/* FOOTER */}
           <div className="mt-6 text-center">
             <p className="text-xs text-[#DAEFB3] flex items-center justify-center gap-2 font-semibold">
-              <Lock className="w-3 h-3 text-[#DAEFB3]" /> Secure access for authorized personnel only
+              <Lock className="w-3 h-3 text-[#DAEFB3]" /> Authorized personnel only
             </p>
           </div>
+
         </div>
       </motion.div>
     </div>
