@@ -58,9 +58,9 @@ export default function StaffDashboard({ onLogout }: StaffDashboardProps) {
 
       <div className="relative z-20 min-h-screen">
         {/* HEADER */}
-        <header className="flex justify-between items-center p-6 pb-4">
+        <header className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center p-6 pb-4">
           <div>
-            <h1 className="text-4xl font-playfair font-bold flex items-center gap-3 text-green-400">
+            <h1 className="text-3xl sm:text-4xl font-playfair font-bold flex items-center gap-3 text-green-400">
               <span className="p-2 rounded-lg bg-white/10 text-[#39FF14]">
                 <Briefcase className="text-[#39FF14]" />
               </span>
@@ -70,28 +70,25 @@ export default function StaffDashboard({ onLogout }: StaffDashboardProps) {
             <p className="text-white/80 mt-1">View your profile & assigned tasks</p>
           </div>
 
-          {/* Premium Logout Button with Invert Hover */}
           <Button
-  onClick={onLogout}
-  className="
-    bg-red-600 
-    text-[#39FF14]        /* green text */
-    px-6 py-2 rounded-xl font-semibold
-    transition-all duration-300 
-    hover:scale-[1.07]
-    shadow-md hover:shadow-xl
-    hover:bg-white hover:text-red-600
-    hover:shadow-red-500/40
-  "
->
-  <LogOut className="mr-2 w-5 h-5" /> Logout
-</Button>
-
+            onClick={onLogout}
+            className="
+              bg-red-600 
+              text-[#39FF14]
+              px-6 py-2 rounded-xl font-semibold
+              transition-all duration-300 
+              hover:scale-[1.07]
+              shadow-md hover:shadow-xl
+              hover:bg-white hover:text-red-600
+              hover:shadow-red-500/40
+            "
+          >
+            <LogOut className="mr-2 w-5 h-5" /> Logout
+          </Button>
         </header>
 
         {/* MAIN CONTENT */}
-        <main className="px-6 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
-
+        <main className="px-4 sm:px-6 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* PROFILE SECTION */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -144,7 +141,6 @@ export default function StaffDashboard({ onLogout }: StaffDashboardProps) {
               No tasks assigned yet.
             </div>
           </motion.div>
-
         </main>
       </div>
     </div>

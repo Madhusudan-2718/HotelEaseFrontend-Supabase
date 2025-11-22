@@ -210,9 +210,9 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
 
       <div className="relative z-20 min-h-screen">
         {/* HEADER */}
-        <header className="flex justify-between items-center p-6 pb-4">
+        <header className="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center p-6 pb-4">
           <div>
-            <h1 className="text-4xl font-playfair font-bold text-white flex items-center gap-3">
+            <h1 className="text-3xl sm:text-4xl font-playfair font-bold text-white flex items-center gap-3">
               <span className="p-2 rounded-lg bg-white/10 text-[#FFD700]">
                 <ShieldCheck />
               </span>
@@ -221,7 +221,7 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
             <p className="text-white/80 mt-1">Manage admins & staff accounts</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Button className="bg-white/10 text-white border border-white/10" onClick={loadUsers}>
               <RefreshCw className="mr-2" /> Refresh
             </Button>
@@ -232,7 +232,7 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
         </header>
 
         {/* MAIN BODY */}
-        <main className="px-6 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <main className="px-4 sm:px-6 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* CREATE USER PANEL */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -292,14 +292,14 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
             animate={{ opacity: 1, y: 0 }}
             className="lg:col-span-2 bg-white/10 backdrop-blur-md shadow-xl rounded-2xl p-6 border border-white/20"
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between gap-4 items-center mb-4">
               <h2 className="text-xl font-semibold text-white flex items-center gap-2">
                 <Users className="text-[#FFD700]" /> All Users
               </h2>
 
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Input
-                  className="pl-10 bg-white/5 text-white placeholder-white/60"
+                  className="pl-10 bg-white/5 text-white placeholder-white/60 w-full"
                   placeholder="Search users"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -311,8 +311,8 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
             {loadingList ? (
               <p className="text-white/70">Loading users…</p>
             ) : (
-              <div className="overflow-x-auto mt-4">
-                <table className="w-full border-collapse">
+              <div className="w-full overflow-x-auto rounded-lg mt-4">
+                <table className="w-full border-collapse min-w-[650px]">
                   <thead>
                     <tr className="text-white/80">
                       <th className="p-3">Email</th>
@@ -329,9 +329,9 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
                         <td className="p-3 text-white capitalize">{u.role}</td>
                         <td className="p-3 text-white">{u.status}</td>
 
-                        <td className="p-3 flex flex-wrap gap-2">
+                        <td className="p-3 flex flex-col sm:flex-row flex-wrap gap-2">
                           <Button
-                            className="bg-blue-600 text-white"
+                            className="bg-blue-600 text-white w-full sm:w-auto"
                             onClick={() =>
                               updateRole(
                                 u.id,
@@ -344,7 +344,7 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
                           </Button>
 
                           <Button
-                            className="bg-orange-600 text-white"
+                            className="bg-orange-600 text-white w-full sm:w-auto"
                             onClick={() =>
                               updateRole(
                                 u.id,
@@ -360,7 +360,7 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
                           </Button>
 
                           <Button
-                            className="bg-red-600 text-white"
+                            className="bg-red-600 text-white w-full sm:w-auto"
                             onClick={() => resetPassword(u.id)}
                           >
                             <Lock className="mr-1" /> Reset
