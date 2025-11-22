@@ -199,16 +199,21 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
   );
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative overflow-hidden">
+      
       {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${adminbg})` }}
+        style={{
+          backgroundImage: `url(${adminbg})`,
+          maxWidth: "100%",
+        }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/70"></div>
       </div>
 
-      <div className="relative z-20 min-h-screen">
+      <div className="relative z-20 min-h-screen overflow-x-hidden">
+        
         {/* HEADER */}
         <header className="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center p-6 pb-4">
           <div>
@@ -233,6 +238,7 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
 
         {/* MAIN BODY */}
         <main className="px-4 sm:px-6 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
           {/* CREATE USER PANEL */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
