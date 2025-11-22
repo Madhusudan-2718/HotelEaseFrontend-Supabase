@@ -28,16 +28,22 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
   const [loadingList, setLoadingList] = useState(false);
   const [search, setSearch] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
 
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState("admin");
 
-  // Fetch superadmin user ID
+  // Fetch logged-in superadmin ID
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) setCurrentUserId(data.session.user.id);
-    });
+    const loadAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        setCurrentUserId(data.session.user.id);
+        setAuthReady(true);
+      }
+    };
+    loadAuth();
   }, []);
 
   const AUTH_HEADERS = async () => {
@@ -48,11 +54,9 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
     };
   };
 
-  // ============================================================
-  // LOAD USERS
-  // ============================================================
+  // Load users list
   const loadUsers = async () => {
-    if (!currentUserId) return;
+    if (!authReady || !currentUserId) return;
 
     setLoadingList(true);
 
@@ -70,27 +74,28 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
 
       if (!res.ok) {
         toast.error(data.error || "Failed to load users");
-        console.error("List users error:", data);
         return;
       }
 
       setUsers(data.users ?? []);
-    } catch (err) {
+    } catch {
       toast.error("Unexpected error");
-      console.error(err);
     }
 
     setLoadingList(false);
   };
 
   useEffect(() => {
-    loadUsers();
-  }, [currentUserId]);
+    if (authReady) loadUsers();
+  }, [authReady, currentUserId]);
 
-  // ============================================================
-  // CREATE USER
-  // ============================================================
+  // Create user
   const createUser = async () => {
+    if (!authReady || !currentUserId) {
+      toast.error("Superadmin not authenticated yet. Please wait.");
+      return;
+    }
+
     if (!newEmail || !newPassword) {
       toast.error("Fill all fields");
       return;
@@ -115,25 +120,23 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
 
       if (!res.ok) {
         toast.error(data.error || "Failed to create user");
-        console.error("Create user error:", data);
         return;
       }
 
-      toast.success("User created");
+      toast.success("User created successfully");
       setNewEmail("");
       setNewPassword("");
       setNewRole("admin");
       loadUsers();
-    } catch (err) {
+    } catch {
       toast.error("Unexpected error");
-      console.error(err);
     }
   };
 
-  // ============================================================
-  // RESET PASSWORD
-  // ============================================================
+  // Reset password
   const resetPassword = async (userId: string) => {
+    if (!authReady || !currentUserId) return;
+
     const newPass = prompt("Enter new password:");
     if (!newPass) return;
 
@@ -156,15 +159,15 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
       } else {
         toast.success("Password updated");
       }
-    } catch (err) {
+    } catch {
       toast.error("Unexpected error");
     }
   };
 
-  // ============================================================
-  // UPDATE ROLE + STATUS
-  // ============================================================
+  // Update role and status
   const updateRole = async (userId: string, role: string, status: string) => {
+    if (!authReady || !currentUserId) return;
+
     try {
       const res = await fetch(
         "https://aveacvjwbsoipcpnghti.supabase.co/functions/v1/update-role",
@@ -183,10 +186,10 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
       if (!res.ok) {
         toast.error("Update failed");
       } else {
-        toast.success("Updated");
+        toast.success("User updated");
         loadUsers();
       }
-    } catch (err) {
+    } catch {
       toast.error("Unexpected error");
     }
   };
@@ -195,9 +198,6 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
     `${u.email} ${u.role} ${u.status}`.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ============================================================
-  // UI STARTS
-  // ============================================================
   return (
     <div className="min-h-screen relative">
       {/* Background */}
@@ -231,9 +231,9 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
           </div>
         </header>
 
-        {/* MAIN CONTENT */}
+        {/* MAIN BODY */}
         <main className="px-6 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* CREATE USER */}
+          {/* CREATE USER PANEL */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -265,7 +265,6 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
                 />
               </div>
 
-              {/* ORIGINAL SIMPLE DROPDOWN */}
               <div>
                 <Label className="text-white">Role</Label>
                 <select
@@ -287,7 +286,7 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
             </div>
           </motion.div>
 
-          {/* USERS LIST */}
+          {/* USER LIST */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -369,7 +368,7 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
                         </td>
                       </tr>
                     ))}
-                  </tbody> 
+                  </tbody>
                 </table>
               </div>
             )}
