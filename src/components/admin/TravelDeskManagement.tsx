@@ -32,7 +32,15 @@ import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import { useAppContext } from "../../context/AppContext";
 import travelDeskBanner from "./imagess/traveldesk.png";
-import { TRAVEL_DRIVERS, TRAVEL_VEHICLES, Driver } from "../../data/staffData";
+// Removed dummy imports
+
+import { supabase } from "../../services/api";
+
+export interface Driver {
+  name: string;
+  phone: string;
+  available: boolean;
+}
 
 interface TravelBookingAdmin {
   id: string;
@@ -52,8 +60,8 @@ interface TravelBookingAdmin {
 export default function TravelDeskManagement() {
   const { subscribe } = useAppContext();
   const [bookings, setBookings] = useState<TravelBookingAdmin[]>([]);
-  const [drivers, setDrivers] = useState<Driver[]>(TRAVEL_DRIVERS);
-  const [vehicles, setVehicles] = useState<string[]>(TRAVEL_VEHICLES);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [vehicles, setVehicles] = useState<string[]>([]);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<TravelBookingAdmin | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -61,13 +69,58 @@ export default function TravelDeskManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Load drivers & vehicles from app_users (SuperAdmin-created)
+  useEffect(() => {
+    let mounted = true;
+    const loadTravelStaff = async () => {
+      try {
+        const { data: driversData, error: driversErr } = await supabase
+          .from("app_users")
+          .select("name, phone, status, vehicle_number")
+          .eq("department", "Travel Desk")
+          .eq("subrole", "Driver")
+          .eq("role", "staff")
+          .order("name", { ascending: true });
+
+        if (driversErr) {
+          console.error("Error loading drivers:", driversErr);
+        }
+
+        if (mounted) {
+          setDrivers(
+            (driversData ?? []).map((d: any) => ({
+              name: d.name || "Unnamed",
+              phone: d.phone || "",
+              available: (d.status || "active") === "active",
+            }))
+          );
+
+          // collect vehicles from driver rows (vehicle_number)
+          const vehiclesList = (driversData ?? [])
+            .map((d: any) => d.vehicle_number)
+            .filter(Boolean);
+          setVehicles(vehiclesList);
+        }
+      } catch (e) {
+        console.error(e);
+        if (mounted) {
+          setDrivers([]);
+          setVehicles([]);
+        }
+      }
+    };
+
+    loadTravelStaff();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        setBookings([]);
-        setDrivers(TRAVEL_DRIVERS);
-        setVehicles(TRAVEL_VEHICLES);
+        setBookings([]); // load bookings from DB if you persist them
       } catch {
         setError("Failed to load bookings. Please try again later.");
       } finally {

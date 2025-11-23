@@ -31,7 +31,9 @@ import {
 import { toast } from "sonner";
 import { useAppContext } from "../../context/AppContext";
 import restaurantBanner from "../admin/imagess/res.png";
-import { RESTAURANT_CHEFS, RESTAURANT_WAITERS } from "../../data/staffData";
+// Removed dummy imports
+
+import { supabase } from "../../services/api";
 
 interface RestaurantOrder {
   id: string;
@@ -48,8 +50,8 @@ interface RestaurantOrder {
 export default function RestaurantManagement() {
   const { subscribe } = useAppContext();
   const [orders, setOrders] = useState<RestaurantOrder[]>([]);
-  const [chefs, setChefs] = useState<string[]>(RESTAURANT_CHEFS);
-  const [waiters, setWaiters] = useState<string[]>(RESTAURANT_WAITERS);
+  const [chefs, setChefs] = useState<string[]>([]);
+  const [waiters, setWaiters] = useState<string[]>([]);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<RestaurantOrder | null>(
     null
@@ -59,15 +61,61 @@ export default function RestaurantManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Load restaurant chefs & waiters from app_users (SuperAdmin-created)
+  useEffect(() => {
+    let mounted = true;
+    const loadRestaurantStaff = async () => {
+      try {
+        // Load chefs (Head Chef or Chef)
+        const { data: chefsData, error: chefsErr } = await supabase
+          .from("app_users")
+          .select("name")
+          .eq("department", "Restaurant")
+          .or("subrole.eq.Head Chef,subrole.eq.Chef")
+          .eq("role", "staff")
+          .order("name", { ascending: true });
+
+        // Load waiters
+        const { data: waitersData, error: waitersErr } = await supabase
+          .from("app_users")
+          .select("name")
+          .eq("department", "Restaurant")
+          .eq("subrole", "Waiter")
+          .eq("role", "staff")
+          .order("name", { ascending: true });
+
+        if (chefsErr) {
+          console.error("Error loading chefs:", chefsErr);
+        }
+        if (waitersErr) {
+          console.error("Error loading waiters:", waitersErr);
+        }
+
+        if (mounted) {
+          setChefs((chefsData ?? []).map((r: any) => r.name || "Unnamed"));
+          setWaiters((waitersData ?? []).map((r: any) => r.name || "Unnamed"));
+        }
+      } catch (e) {
+        console.error(e);
+        if (mounted) {
+          setChefs([]);
+          setWaiters([]);
+        }
+      }
+    };
+    loadRestaurantStaff();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Fetch orders
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        setOrders([]);
-        setChefs(RESTAURANT_CHEFS);
-        setWaiters(RESTAURANT_WAITERS);
+        setOrders([]); // you can load persisted orders here if you have a table
       } catch {
         setError("Failed to load orders. Please try again later.");
       } finally {

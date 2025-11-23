@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
 import {
   LayoutDashboard,
@@ -17,7 +17,7 @@ import DashboardOverview from "../../components/admin/DashboardOverview";
 import HousekeepingManagement from "../../components/admin/HousekeepingManagement";
 import RestaurantManagement from "../../components/admin/RestaurantManagement";
 import TravelDeskManagement from "../../components/admin/TravelDeskManagement";
-import StaffDirectory from "../../components/admin/StaffDirectory";
+import StaffDirectory from "../../pages/staff/StaffDirectory";
 import AdminSettings from "../../components/admin/AdminSettings";
 
 type AdminPage =
@@ -36,38 +36,39 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [currentPage, setCurrentPage] = useState<AdminPage>("overview");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+
   const [lastScrollY, setLastScrollY] = useState(0);
 
   // -------------------------------------------------------
-  // ⭐ Smooth Hide Header on Scroll
+  // ⭐ Smooth Hide Header on Scroll (Optimized)
   // -------------------------------------------------------
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentY = window.scrollY;
+  const handleScroll = useCallback(() => {
+    const currentY = window.scrollY;
 
-      if (currentY > lastScrollY && currentY > 80) {
-        setIsHeaderVisible(false);
-      } else {
-        setIsHeaderVisible(true);
-      }
+    if (currentY > lastScrollY && currentY > 80) {
+      setIsHeaderVisible(false);
+    } else {
+      setIsHeaderVisible(true);
+    }
 
-      setLastScrollY(currentY);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    setLastScrollY(currentY);
   }, [lastScrollY]);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
 
   // -------------------------------------------------------
   // ⭐ Menu Items
   // -------------------------------------------------------
-  const menuItems = [
-    { id: "overview" as AdminPage, label: "Dashboard Overview", icon: LayoutDashboard },
-    { id: "housekeeping" as AdminPage, label: "Housekeeping Tasks", icon: Sparkles },
-    { id: "restaurant" as AdminPage, label: "Restaurant Tasks", icon: UtensilsCrossed },
-    { id: "travel" as AdminPage, label: "Travel Desk Requests", icon: Plane },
-    { id: "staff" as AdminPage, label: "Staff Directory", icon: Users },
-    { id: "settings" as AdminPage, label: "Profile & Settings", icon: User },
+  const menuItems: { id: AdminPage; label: string; icon: any }[] = [
+    { id: "overview", label: "Dashboard Overview", icon: LayoutDashboard },
+    { id: "housekeeping", label: "Housekeeping Tasks", icon: Sparkles },
+    { id: "restaurant", label: "Restaurant Tasks", icon: UtensilsCrossed },
+    { id: "travel", label: "Travel Desk Requests", icon: Plane },
+    { id: "staff", label: "Staff Directory", icon: Users },
+    { id: "settings", label: "Profile & Settings", icon: User },
   ];
 
   // -------------------------------------------------------
@@ -102,8 +103,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         initial={{ x: -260 }}
         animate={{ x: isSidebarOpen ? 0 : -260 }}
         transition={{ duration: 0.3 }}
-        className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-gradient-to-b 
-        from-[#6B8E23] to-[#556B2F] shadow-2xl lg:translate-x-0`}
+        className="fixed lg:static inset-y-0 left-0 z-40 w-64 bg-gradient-to-b 
+        from-[#6B8E23] to-[#556B2F] shadow-2xl lg:translate-x-0"
       >
         <div className="flex flex-col h-full">
 
@@ -134,9 +135,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     setIsSidebarOpen(false);
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all 
-                    ${active
-                      ? "bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black shadow-lg"
-                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                    ${
+                      active
+                        ? "bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black shadow-lg"
+                        : "text-white/80 hover:bg-white/10 hover:text-white"
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -180,7 +182,11 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                 className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
               >
-                {isSidebarOpen ? <X className="w-6 h-6 text-[#6B8E23]" /> : <Menu className="w-6 h-6 text-[#6B8E23]" />}
+                {isSidebarOpen ? (
+                  <X className="w-6 h-6 text-[#6B8E23]" />
+                ) : (
+                  <Menu className="w-6 h-6 text-[#6B8E23]" />
+                )}
               </button>
 
               {/* Notification */}

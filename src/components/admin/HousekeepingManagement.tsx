@@ -39,7 +39,9 @@ import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import { useAppContext } from "../../context/AppContext";
 import housekeepingBanner from "./imagess/housekeep.png";
-import { HOUSEKEEPING_STAFF } from "../../data/staffData";
+// Removed dummy imports
+
+import { supabase } from "../../services/api";
 
 interface HousekeepingTask {
   id: string;
@@ -55,7 +57,7 @@ interface HousekeepingTask {
 export default function HousekeepingManagement() {
   const { subscribe } = useAppContext();
   const [tasks, setTasks] = useState<HousekeepingTask[]>([]);
-  const [staffMembers, setStaffMembers] = useState<string[]>(HOUSEKEEPING_STAFF);
+  const [staffMembers, setStaffMembers] = useState<string[]>([]); // now populated from app_users
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<HousekeepingTask | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,16 +65,43 @@ export default function HousekeepingManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Load housekeeping staff from app_users (created by SuperAdmin)
+  useEffect(() => {
+    let mounted = true;
+    const loadHousekeepingStaff = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("app_users")
+          .select("name")
+          .eq("department", "Housekeeping")
+          .eq("role", "staff")
+          .order("name", { ascending: true });
+
+        if (error) {
+          console.error("Error loading housekeeping staff:", error);
+          if (mounted) setStaffMembers([]);
+        } else {
+          if (mounted) setStaffMembers((data ?? []).map((r: any) => r.name || "Unnamed"));
+        }
+      } catch (e) {
+        console.error(e);
+        if (mounted) setStaffMembers([]);
+      }
+    };
+    loadHousekeepingStaff();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        setTasks([]);
-        setStaffMembers(HOUSEKEEPING_STAFF);
+        setTasks([]); // you may load tasks from staff_tasks table; kept empty for now
       } catch (err) {
         setError("Failed to load tasks. Please try again later.");
-        setStaffMembers(HOUSEKEEPING_STAFF);
       } finally {
         setLoading(false);
       }

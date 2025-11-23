@@ -12,38 +12,44 @@ interface StaffDashboardProps {
 }
 
 export default function StaffDashboard({ onLogout }: StaffDashboardProps) {
-  const [staffEmail, setStaffEmail] = useState<string>("");
-  const [role, setRole] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [department, setDepartment] = useState("");
+  const [subRole, setSubRole] = useState("");
+  const [phone, setPhone] = useState("");
+  const [shiftTiming, setShiftTiming] = useState("");
+  const [status, setStatus] = useState("");
+  const [rating, setRating] = useState<number>(0);
+  const [recentTasks, setRecentTasks] = useState<number>(0);
 
   useEffect(() => {
     loadStaffInfo();
   }, []);
 
-  // Load staff info
   const loadStaffInfo = async () => {
     const session = (await supabase.auth.getSession()).data.session;
 
-    if (!session?.user) return;
-
-    const userId = session.user.id;
-
-    const { data, error } = await supabase
-      .from("app_users")
-      .select("email, role, status")
-      .eq("id", userId)
-      .single();
-
-    if (error) {
-      toast.error("Failed to load staff info");
+    if (!session?.user) {
+      toast.error("Session expired. Please login again.");
       return;
     }
 
-    if (data) {
-      setStaffEmail(data.email);
-      setRole(data.role);
-      setStatus(data.status);
-    }
+    const user = session.user;
+
+    // Email
+    setEmail(user.email || "");
+
+    // Metadata fields (set by SuperAdmin)
+    const meta = user.user_metadata || {};
+
+    setName(meta.name || "");
+    setDepartment(meta.department || "");
+    setSubRole(meta.subRole || "");
+    setPhone(meta.phone || "");
+    setShiftTiming(meta.shiftTiming || "");
+    setStatus(meta.status || "available");
+    setRating(meta.rating || 0);
+    setRecentTasks(meta.recentTasks || 0);
   };
 
   return (
@@ -67,7 +73,7 @@ export default function StaffDashboard({ onLogout }: StaffDashboardProps) {
               Staff Dashboard
             </h1>
 
-            <p className="text-white/80 mt-1">View your profile & assigned tasks</p>
+            <p className="text-white/80 mt-1">Your profile & work overview</p>
           </div>
 
           <Button
@@ -104,18 +110,30 @@ export default function StaffDashboard({ onLogout }: StaffDashboardProps) {
               <User className="text-[#39FF14]" /> Profile
             </h2>
 
-            <p className="text-white/90"><strong>Email:</strong> {staffEmail}</p>
-            <p className="text-white/90"><strong>Role:</strong> {role}</p>
-            <p className="text-white/90">
-              <strong>Status:</strong>{" "}
-              <span
-                className={`font-bold ${
-                  status === "active" ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {status}
-              </span>
-            </p>
+            <div className="text-white/90 space-y-2">
+              <p><strong>Name:</strong> {name}</p>
+              <p><strong>Email:</strong> {email}</p>
+              <p><strong>Department:</strong> {department}</p>
+              <p><strong>Role:</strong> {subRole}</p>
+              <p><strong>Phone:</strong> {phone}</p>
+              <p><strong>Shift:</strong> {shiftTiming}</p>
+              <p>
+                <strong>Status:</strong>{" "}
+                <span
+                  className={`font-bold ${
+                    status === "available"
+                      ? "text-green-400"
+                      : status === "busy"
+                      ? "text-yellow-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  {status.replace("_", " ").toUpperCase()}
+                </span>
+              </p>
+              <p><strong>Rating:</strong> ⭐ {rating}/5</p>
+              <p><strong>Recent Tasks:</strong> {recentTasks}</p>
+            </div>
           </motion.div>
 
           {/* TASKS SECTION */}
@@ -134,7 +152,7 @@ export default function StaffDashboard({ onLogout }: StaffDashboardProps) {
             </h2>
 
             <p className="text-white/70 mb-3">
-              Tasks from Housekeeping, Restaurant, or Travel Desk will appear here.
+              Tasks assigned to you by the hotel departments will appear here.
             </p>
 
             <div className="p-4 bg-white/5 border border-white/20 rounded-md text-white/60">

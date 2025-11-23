@@ -4,17 +4,13 @@ import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
-import { Avatar, AvatarFallback } from "../ui/avatar";
 import { toast } from "sonner";
 import { Mail, User, Phone, Save } from "lucide-react";
 import { supabase } from "../../services/api";
-import settingsBanner from "../admin/imagess/settings.png";
-import React from "react";
 
-import { getSession, getAllUsers } from "../../utils/authLocal";
+import settingsBanner from "../admin/imagess/settings.png";
 
 export default function AdminSettings() {
-  const [isGoogleUser, setIsGoogleUser] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [profile, setProfile] = useState({
@@ -23,235 +19,174 @@ export default function AdminSettings() {
     phone: "",
   });
 
-  // Fetch logged-in user info (LocalStorage first → Google fallback)
   useEffect(() => {
-    const fetchUser = async () => {
+    const loadProfile = async () => {
       try {
-        // 🔹 1) LOCAL USER CHECK
-        const localUser = getSession();
-
-        if (localUser) {
-          setIsGoogleUser(false);
-
-          setProfile({
-            name: localUser.name,
-            email: localUser.email,
-            phone: "", // local users don't have phone
-          });
-
+        const { data: authData } = await supabase.auth.getUser();
+        if (!authData?.user) {
+          toast.error("Unable to load your account");
           setLoading(false);
           return;
         }
 
-        // 🔹 2) GOOGLE USER CHECK
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error || !user) {
-          toast.error("No account found");
-          setLoading(false);
-          return;
-        }
+        const loggedInUser = authData.user;
 
-        setIsGoogleUser(true);
-
-        const metadata = user.user_metadata || {};
-        const fullName =
-          metadata.full_name || metadata.name || user.email?.split("@")[0] || "";
+        // Fetch from app_users
+        const { data: userData } = await supabase
+          .from("app_users")
+          .select("name, phone, email")
+          .eq("id", loggedInUser.id)
+          .single();
 
         setProfile({
-          name: fullName,
-          email: user.email,
-          phone: metadata.phone || "",
+          name: userData?.name || loggedInUser.user_metadata?.name || "",
+          email: userData?.email || loggedInUser.email,
+          phone: userData?.phone || "",
         });
-
       } catch (err: any) {
-        toast.error(err.message || "Unable to load profile");
+        toast.error(err.message || "Failed to load profile");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUser();
+    loadProfile();
   }, []);
 
-  // SAVE PROFILE
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 🔹 LOCAL USER UPDATE
-    if (!isGoogleUser) {
-      // update localStorage user values
-      const updatedUsers = getAllUsers().map((u: any) =>
-        u.email === profile.email
-          ? { ...u, name: profile.name }
-          : u
-      );
-
-      localStorage.setItem("adminUsers", JSON.stringify(updatedUsers));
-      localStorage.setItem("adminSession", JSON.stringify({
-        name: profile.name,
-        email: profile.email,
-      }));
-
-      toast.success("Profile updated successfully!");
-      return;
-    }
-
-    // 🔹 GOOGLE USER UPDATE
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
+      const { error } = await supabase
+        .from("app_users")
+        .update({
+          name: profile.name,
+          phone: profile.phone,
+        })
+        .eq("email", profile.email);
+
+      if (error) throw error;
+
+      // Also update auth user metadata for consistency
+      await supabase.auth.updateUser({
         data: {
-          full_name: profile.name,
+          name: profile.name,
           phone: profile.phone,
         },
       });
 
-      if (updateError) throw updateError;
-
-      toast.success("Profile saved successfully!");
+      toast.success("Profile updated successfully!");
     } catch (error: any) {
       toast.error(error.message || "Failed to save profile");
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Loading...</div>;
+  if (loading)
+    return <div className="p-10 text-center text-white">Loading...</div>;
 
   return (
-    <div className="flex flex-col gap-6 px-4 sm:px-6 md:px-8 py-6 bg-[#F9FAFB] min-h-screen overflow-y-auto">
-
-      {/* Banner */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="relative h-48 sm:h-60 md:h-72 rounded-xl overflow-hidden shadow-lg"
+    <div className="relative min-h-screen overflow-hidden">
+      {/* BACKGROUND */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${settingsBanner})` }}
       >
-        <img
-          src={settingsBanner}
-          alt="Settings Banner"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/75 to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/70 to-black/90"></div>
+      </div>
 
-        <div className="relative flex flex-col justify-center h-full px-4 sm:px-8">
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#FFD700] font-playfair">
-            Profile & Account Settings
-          </h1>
-          <p className="text-xs sm:text-lg mt-2 text-white/90 font-poppins">
-            Manage your admin profile and update your personal details
-          </p>
-        </div>
-      </motion.div>
-
-      {/* Profile Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="px-1"
-      >
-        <Card className="p-4 sm:p-6 bg-white border-none rounded-2xl shadow-md">
-          <h2 className="font-playfair text-xl sm:text-2xl font-bold text-[#2D2D2D] mb-6">
+      <div className="relative z-20 h-screen flex flex-col items-center justify-center px-4 sm:px-6 md:px-8">
+        {/* HEADER */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-6 text-center"
+        >
+          <h1 className="text-3xl sm:text-4xl font-playfair font-bold text-[#FFD700]">
             Profile Settings
-          </h2>
+          </h1>
+          <p className="text-white/80 mt-1 font-poppins">
+            Update your personal details & account information
+          </p>
+        </motion.div>
 
-          <form onSubmit={handleProfileSave} className="space-y-6">
+        {/* PROFILE CARD */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="w-full max-w-2xl"
+        >
+          <Card className="p-6 sm:p-8 bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl">
+            <h2 className="font-playfair text-2xl font-bold text-[#FFD700] mb-6">
+              Account Information
+            </h2>
 
-            {/* Avatar + Text */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-              <Avatar className="w-20 h-20 overflow-hidden rounded-full shadow-md">
-                <AvatarFallback className="bg-gradient-to-br from-[#FFD700] to-[#FFA500] text-[#2D2D2D] text-2xl font-semibold">
-                  {profile.name
-                    ?.split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-
-              <div className="text-center sm:text-left">
-                <h3 className="text-lg font-semibold text-[#2D2D2D]">{profile.name}</h3>
-
-                <p className="text-sm text-gray-600 break-all">
-                  {isGoogleUser ? (
-                    <>Signed in with Google ({profile.email})</>
-                  ) : (
-                    <>Signed in locally ({profile.email})</>
-                  )}
-                </p>
-
-                {!isGoogleUser && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    You can edit all your details.
-                  </p>
-                )}
-
-                {isGoogleUser && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Email cannot be changed for Google accounts.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Editable Fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-
-              {/* Name */}
-              <div>
-                <Label className="text-[#2D2D2D] font-semibold text-sm">
-                  Full Name
-                </Label>
-                <div className="flex items-center gap-2 mt-2">
-                  <User className="w-4 h-4 text-gray-400" />
-                  <Input
-                    value={profile.name}
-                    onChange={(e) =>
-                      setProfile({ ...profile, name: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Email */}
-              <div>
-                <Label className="text-[#2D2D2D] font-semibold text-sm">
-                  Email
-                </Label>
-                <div className="flex items-center gap-2 mt-2">
-                  <Mail className="w-4 h-4 text-gray-400" />
-                  <Input value={profile.email} disabled={isGoogleUser} />
-                </div>
-              </div>
-
-              {/* Phone */}
-              {isGoogleUser && (
+            <form onSubmit={handleProfileSave} className="space-y-6">
+              {/* FORM FIELDS */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* Full Name */}
                 <div>
-                  <Label className="text-[#2D2D2D] font-semibold text-sm">
+                  <Label className="text-white font-semibold text-sm">
+                    Full Name
+                  </Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <User className="w-4 h-4 text-white/60" />
+                    <Input
+                      className="bg-white/10 text-white border-white/20 placeholder-white/40"
+                      value={profile.name}
+                      onChange={(e) =>
+                        setProfile({ ...profile, name: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div>
+                  <Label className="text-white font-semibold text-sm">
+                    Email
+                  </Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Mail className="w-4 h-4 text-white/60" />
+                    <Input
+                      value={profile.email}
+                      disabled
+                      className="bg-white/10 text-white border-white/20"
+                    />
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <Label className="text-white font-semibold text-sm">
                     Phone Number
                   </Label>
                   <div className="flex items-center gap-2 mt-2">
-                    <Phone className="w-4 h-4 text-gray-400" />
+                    <Phone className="w-4 h-4 text-white/60" />
                     <Input
+                      className="bg-white/10 text-white border-white/20 placeholder-white/40"
                       value={profile.phone}
                       onChange={(e) =>
                         setProfile({ ...profile, phone: e.target.value })
                       }
-                      placeholder="Add your phone number"
+                      placeholder="Add phone"
                     />
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Save */}
-            <Button
-              type="submit"
-              className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#2D2D2D] font-semibold px-6 py-2 w-full sm:w-auto"
-            >
-              <Save className="w-4 h-4 mr-2" /> Save Changes
-            </Button>
-          </form>
-        </Card>
-      </motion.div>
+              {/* Save Button */}
+              <Button
+                type="submit"
+                className="bg-[#FFD700] hover:bg-[#e2c200] text-black font-semibold px-6 py-2"
+              >
+                <Save className="w-4 h-4 mr-2" /> Save Changes
+              </Button>
+            </form>
+          </Card>
+        </motion.div>
+      </div>
     </div>
   );
 }

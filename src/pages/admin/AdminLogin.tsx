@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "motion/react";
 import { Hotel, Lock } from "lucide-react";
 import { Button } from "../../components/ui/button";
@@ -6,8 +6,6 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { toast } from "sonner";
 import loginbackground from "../../assets/images/loginbackground.png";
-import React from "react";
-
 import { supabase } from "../../services/api";
 
 interface AdminLoginProps {
@@ -19,15 +17,11 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // -------------------------------------------------------
-  // NEW: Supabase Password Login + Role Fetch
-  // -------------------------------------------------------
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // 1) Login using email + password
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -46,7 +40,6 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
         return;
       }
 
-      // 2) Fetch role from app_users
       const { data: roleData, error: roleError } = await supabase
         .from("app_users")
         .select("role, status")
@@ -59,22 +52,18 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
         return;
       }
 
-      // Suspended check
       if (roleData.status === "suspended") {
         toast.error("Your account has been suspended.");
-        await supabase.auth.signOut();
         setIsLoading(false);
         return;
       }
 
-      // 3) Role-based redirect
       toast.success("Login successful!");
       setIsLoading(false);
-
       onLoginSuccess(roleData.role);
 
     } catch (err: any) {
-      toast.error(err.message || "Login failed.");
+      toast.error(err?.message || "Login failed.");
       setIsLoading(false);
     }
   };
@@ -87,18 +76,16 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
         style={{ backgroundImage: `url(${loginbackground})` }}
       />
-
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/60 z-10"></div>
+      <div className="absolute inset-0 bg-black/60 z-10" />
 
       {/* Login Card */}
       <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        initial={{ opacity: 0, y: 30, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.35, ease: "easeInOut" }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
         className="relative w-full max-w-sm z-50 mt-16 sm:mt-0"
       >
-        <div className="bg-transparent backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-8 border border-white/20">
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 sm:p-8 border border-white/20 shadow-2xl">
 
           {/* Logo */}
           <div className="text-center mb-8">
@@ -117,9 +104,10 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
             </p>
           </div>
 
-          {/* LOGIN FORM */}
+          {/* FORM */}
           <form onSubmit={handleLogin} className="space-y-6">
 
+            {/* Email */}
             <div>
               <Label className="text-white font-bold text-sm">Email</Label>
               <Input
@@ -127,11 +115,12 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 placeholder="admin@hotelease.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 w-full bg-white/80 border border-gray-300 text-white "
+                className="h-12 w-full bg-white/80 border border-gray-300 text-black placeholder-gray-600"
                 required
               />
             </div>
 
+            {/* Password */}
             <div>
               <Label className="text-white font-bold text-sm">Password</Label>
               <Input
@@ -139,21 +128,22 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 w-full bg-white/80 border border-gray-300 text-white"
+                className="h-12 w-full bg-white/80 border border-gray-300 text-black placeholder-gray-600"
                 required
               />
             </div>
 
+            {/* Sign In Button */}
             <Button
+              type="submit"
               disabled={isLoading}
-              className="w-full h-11 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black hover:scale-[1.02]"
+              className="w-full h-11 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black hover:scale-[1.02] transition-all font-semibold shadow-lg"
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
-
           </form>
 
-          {/* FOOTER */}
+          {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-xs text-[#DAEFB3] flex items-center justify-center gap-2 font-semibold">
               <Lock className="w-3 h-3 text-[#DAEFB3]" /> Authorized personnel only
