@@ -8,7 +8,6 @@ import {
   RefreshCcw,
   LogOut,
   Search,
-  RefreshCw,
 } from "lucide-react";
 
 import { Button } from "../../components/ui/button";
@@ -34,7 +33,6 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
   const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState("admin");
 
-  // Fetch logged-in superadmin ID
   useEffect(() => {
     const loadAuth = async () => {
       const { data } = await supabase.auth.getSession();
@@ -54,7 +52,6 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
     };
   };
 
-  // Load users list
   const loadUsers = async () => {
     if (!authReady || !currentUserId) return;
 
@@ -89,13 +86,7 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
     if (authReady) loadUsers();
   }, [authReady, currentUserId]);
 
-  // Create user
   const createUser = async () => {
-    if (!authReady || !currentUserId) {
-      toast.error("Superadmin not authenticated yet. Please wait.");
-      return;
-    }
-
     if (!newEmail || !newPassword) {
       toast.error("Fill all fields");
       return;
@@ -133,10 +124,7 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
     }
   };
 
-  // Reset password
   const resetPassword = async (userId: string) => {
-    if (!authReady || !currentUserId) return;
-
     const newPass = prompt("Enter new password:");
     if (!newPass) return;
 
@@ -146,28 +134,18 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
         {
           method: "POST",
           headers: await AUTH_HEADERS(),
-          body: JSON.stringify({
-            creatorId: currentUserId,
-            userId,
-            newPassword: newPass,
-          }),
+          body: JSON.stringify({ creatorId: currentUserId, userId, newPassword: newPass }),
         }
       );
 
-      if (!res.ok) {
-        toast.error("Failed to reset password");
-      } else {
-        toast.success("Password updated");
-      }
+      if (!res.ok) toast.error("Failed to reset password");
+      else toast.success("Password updated");
     } catch {
       toast.error("Unexpected error");
     }
   };
 
-  // Update role and status
   const updateRole = async (userId: string, role: string, status: string) => {
-    if (!authReady || !currentUserId) return;
-
     try {
       const res = await fetch(
         "https://aveacvjwbsoipcpnghti.supabase.co/functions/v1/update-role",
@@ -183,9 +161,8 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
         }
       );
 
-      if (!res.ok) {
-        toast.error("Update failed");
-      } else {
+      if (!res.ok) toast.error("Update failed");
+      else {
         toast.success("User updated");
         loadUsers();
       }
@@ -200,20 +177,17 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      
+
       {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url(${adminbg})`,
-          maxWidth: "100%",
-        }}
+        style={{ backgroundImage: `url(${adminbg})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/70"></div>
       </div>
 
       <div className="relative z-20 min-h-screen overflow-x-hidden">
-        
+
         {/* HEADER */}
         <header className="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center p-6 pb-4">
           <div>
@@ -227,9 +201,13 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button className="bg-white/10 text-white border border-white/10" onClick={loadUsers}>
-              <RefreshCw className="mr-2" /> Refresh
+            <Button
+              className="bg-white/10 text-white border border-white/10"
+              onClick={loadUsers}
+            >
+              <RefreshCcw className="mr-2" /> Refresh
             </Button>
+
             <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={onLogout}>
               <LogOut className="mr-2" /> Logout
             </Button>
@@ -238,7 +216,7 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
 
         {/* MAIN BODY */}
         <main className="px-4 sm:px-6 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* CREATE USER PANEL */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -303,41 +281,41 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
                 <Users className="text-[#FFD700]" /> All Users
               </h2>
 
-              <div className="relative w-full sm:w-auto">
+              {/* SEARCH */}
+              <div className="w-full sm:w-72 md:w-80">
                 <Input
-                  className="pl-10 bg-white/5 text-white placeholder-white/60 w-full"
+                  className="bg-white/5 text-white placeholder-white/60 w-full border-white/20"
                   placeholder="Search users"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60" />
               </div>
             </div>
 
-            {loadingList ? (
-              <p className="text-white/70">Loading users…</p>
-            ) : (
-              <div className="w-full overflow-x-auto rounded-lg mt-4">
-                <table className="w-full border-collapse min-w-[650px]">
-                  <thead>
-                    <tr className="text-white/80">
-                      <th className="p-3">Email</th>
-                      <th className="p-3">Role</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3">Actions</th>
-                    </tr>
-                  </thead>
+            {/* DESKTOP TABLE - FIXED */}
+            <div className="hidden sm:block overflow-x-auto rounded-lg mt-4">
+              <table className="w-full min-w-[900px] border-collapse">
+                <thead className="bg-white/5">
+                  <tr className="text-white/80">
+                    <th className="p-3 text-left">Email</th>
+                    <th className="p-3 text-left">Role</th>
+                    <th className="p-3 text-left">Status</th>
+                    <th className="p-3 text-left">Actions</th>
+                  </tr>
+                </thead>
 
-                  <tbody>
-                    {filteredUsers.map((u) => (
-                      <tr key={u.id} className="border-t border-white/20">
-                        <td className="p-3 text-white">{u.email}</td>
-                        <td className="p-3 text-white capitalize">{u.role}</td>
-                        <td className="p-3 text-white">{u.status}</td>
+                <tbody>
+                  {filteredUsers.map((u) => (
+                    <tr key={u.id} className="border-t border-white/20">
+                      <td className="p-3 text-white break-words">{u.email}</td>
+                      <td className="p-3 text-white capitalize">{u.role}</td>
+                      <td className="p-3 text-white capitalize">{u.status}</td>
 
-                        <td className="p-3 flex flex-col sm:flex-row flex-wrap gap-2">
+                      <td className="p-3">
+                        <div className="flex flex-row flex-wrap gap-2">
                           <Button
-                            className="bg-blue-600 text-white w-full sm:w-auto"
+                            size="sm"
+                            className="bg-blue-600 text-white hover:bg-blue-700"
                             onClick={() =>
                               updateRole(
                                 u.id,
@@ -346,38 +324,102 @@ export default function SuperadminDashboard({ onLogout }: SuperadminDashboardPro
                               )
                             }
                           >
-                            <ShieldCheck className="mr-1" /> Switch
+                            <ShieldCheck className="mr-1 w-3 h-3" /> Switch
                           </Button>
 
                           <Button
-                            className="bg-orange-600 text-white w-full sm:w-auto"
+                            size="sm"
+                            className="bg-orange-600 text-white hover:bg-orange-700"
                             onClick={() =>
                               updateRole(
                                 u.id,
                                 u.role,
-                                u.status === "active"
-                                  ? "suspended"
-                                  : "active"
+                                u.status === "active" ? "suspended" : "active"
                               )
                             }
                           >
-                            <RefreshCcw className="mr-1" />
+                            <RefreshCcw className="mr-1 w-3 h-3" />
                             {u.status === "active" ? "Suspend" : "Activate"}
                           </Button>
 
                           <Button
-                            className="bg-red-600 text-white w-full sm:w-auto"
+                            size="sm"
+                            className="bg-red-600 text-white hover:bg-red-700"
                             onClick={() => resetPassword(u.id)}
                           >
-                            <Lock className="mr-1" /> Reset
+                            <Lock className="mr-1 w-3 h-3" /> Reset
                           </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* MOBILE CARD VIEW */}
+            <div className="sm:hidden space-y-4 mt-4">
+              {filteredUsers.map((u) => (
+                <div
+                  key={u.id}
+                  className="bg-white/10 border border-white/20 rounded-xl p-4 shadow-lg"
+                >
+                  <p className="text-white text-sm">
+                    <span className="font-semibold">Email: </span>
+                    {u.email}
+                  </p>
+
+                  <p className="text-white text-sm">
+                    <span className="font-semibold">Role: </span>
+                    {u.role}
+                  </p>
+
+                  <p className="text-white text-sm mb-3">
+                    <span className="font-semibold">Status: </span>
+                    <span className={u.status === "active" ? "text-green-400" : "text-red-400"}>
+                      {u.status}
+                    </span>
+                  </p>
+
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      className="bg-blue-600 text-white w-full"
+                      onClick={() =>
+                        updateRole(
+                          u.id,
+                          u.role === "admin" ? "staff" : "admin",
+                          u.status
+                        )
+                      }
+                    >
+                      <ShieldCheck className="mr-1" /> Switch Role
+                    </Button>
+
+                    <Button
+                      className="bg-orange-600 text-white w-full"
+                      onClick={() =>
+                        updateRole(
+                          u.id,
+                          u.role,
+                          u.status === "active" ? "suspended" : "active"
+                        )
+                      }
+                    >
+                      <RefreshCcw className="mr-1" />
+                      {u.status === "active" ? "Suspend" : "Activate"}
+                    </Button>
+
+                    <Button
+                      className="bg-red-600 text-white w-full"
+                      onClick={() => resetPassword(u.id)}
+                    >
+                      <Lock className="mr-1" /> Reset Password
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
           </motion.div>
         </main>
       </div>
